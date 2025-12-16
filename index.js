@@ -29,6 +29,10 @@ async function run() {
     const applicationCollection = client
       .db("NextHire")
       .collection("applications");
+
+
+
+
     //jobs api
 
     app.get("/Jobs", async (req, res) => {
@@ -44,7 +48,23 @@ async function run() {
       res.send(result);
     });
 
+    app.post('/jobs', async(req,res) => {
+      const newJob = req.body;
+      const result = await jobsCollection.insertOne(newJob);
+      res.send(result);
+
+    })
+
+    // Could be done
+
+    app.get('/jobsByEmailAddress', async(req,res) =>{
+      const email = req.query.email;
+       const query = {hr_email:email}
+    })
+
     // Job Application Related Api
+
+
 
     //1. dashboared e joma hobe
     app.get("/applications", async (req, res) => {
