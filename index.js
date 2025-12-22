@@ -10,10 +10,24 @@ require("dotenv").config();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173/'], 
+  origin: ['http://localhost:5173'], 
   credentials: true,
 }));
 app.use(express.json());
+app.use(cookieParser());
+
+
+const logger = (req,res,next) => {
+  console.log("inside the logger middleware");
+  next ();
+}
+
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token
+  console.log('cookie in the middleware',req.cookies);
+  // 
+  next()
+}
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@simple-crud-server.a0arf8b.mongodb.net/?appName=simple-crud-server`;
 
@@ -37,13 +51,14 @@ async function run() {
 
   app.post('/jwt', async(req,res)=>{
     const userData = req.body;
-    const token = jwt.sign(userData, process.env.JWT_ACCCESS_SECRET, {expiresIn: 'id'})
+    const token = jwt.sign(userData, process.env.JWT_ACCCESS_SECRET, {expiresIn: '7d'})
     
     // set token in the the cookies
     
  res.cookie('token', token, {
   httpOnly: true,
-  secure: false 
+  secure: false ,
+  sameSite: 'lax'
  })
     
     res.send({success: true})
@@ -58,9 +73,10 @@ async function run() {
     // --- Jobs API ---
     
     // ১. সকল জব অথবা নির্দিষ্ট HR-এর পোস্ট করা জব পাওয়ার জন্য (কাউন্টসহ)
-    app.get("/jobs", async (req, res) => {
+    app.get("/jobs", logger, verifyToken, async (req, res) => {
       const email = req.query.email;
       let query = email ? { hr_email: email } : {};
+      console.log ('inside applications api', req.cookies);
 
       const jobs = await jobsCollection.find(query).toArray();
 
