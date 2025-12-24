@@ -10,11 +10,11 @@ const port = process.env.PORT || 3000;
 
 // --- ১. Middleware Configuration ---
 app.use(cors({
-    origin: ['http://localhost:5173'], // ফ্রন্টএন্ড ইউআরএল
-    credentials: true, // কুকি পাঠানোর জন্য এটি বাধ্যতামূলক
+    origin: ['http://localhost:5173'], 
+    credentials: true, 
 }));
 app.use(express.json());
-app.use(cookieParser()); // কুকি রিড করার জন্য এটি অবশ্যই রাউটের উপরে থাকবে
+app.use(cookieParser()); 
 
 
 // --- ২. Custom Middlewares (লগ দেখার জন্য) ---
@@ -28,7 +28,7 @@ const verifyToken = (req, res, next) => {
     const token = req?.cookies?.token;
 
     console.log('--- Verify Token Middleware ---');
-    console.log('All Cookies found in Backend:', req.cookies); // এখানে আপনি আপনার মেসেজটি পাবেন
+    console.log('All Cookies found in Backend:', req.cookies); 
     console.log('Extracted Token:', token); 
 
     if (!token) {
@@ -70,12 +70,12 @@ async function run() {
             const userData = req.body;
             const token = jwt.sign(userData, process.env.JWT_ACCCESS_SECRET, { expiresIn: '7d' });
 
-            // কুকিতে টোকেন সেট করার সঠিক উপায়
+           
             res.cookie('token', token, {
-                httpOnly: true, // সিকিউরিটির জন্য
-                secure: false,  // লোকালহোস্ট (http) এর জন্য false রাখতে হবে
-                sameSite: 'lax', // ক্রস-সাইট রিকোয়েস্টের জন্য 'lax' বা 'none'
-                path: '/' // এটি নিশ্চিত করে যে সব রাউটে কুকিটি পাওয়া যাবে
+                httpOnly: true, 
+                secure: false,  
+                sameSite: 'lax', 
+                path: '/' 
             })
             .send({ success: true });
         });
@@ -94,11 +94,11 @@ async function run() {
 
         // --- ৫. Jobs API ---
         
-        // সকল জব বা নির্দিষ্ট ইউজারের জব (verifyToken যুক্ত)
+       
         app.get("/jobs", logger, verifyToken, async (req, res) => {
             const email = req.query.email;
             
-            // যদি ইমেইল থাকে, তবে চেক করা হচ্ছে সে নিজের ডাটা দেখছে কি না
+           
             if (email && req.user.email !== email) {
                 return res.status(403).send({ message: 'Forbidden access' });
             }
@@ -106,7 +106,7 @@ async function run() {
             let query = email ? { hr_email: email } : {};
             const jobs = await jobsCollection.find(query).toArray();
 
-            // অ্যাপ্লিকেশন কাউন্ট যোগ করা
+           
             for (const job of jobs) {
                 const count = await applicationCollection.countDocuments({ 
                     jobId: job._id.toString() 
