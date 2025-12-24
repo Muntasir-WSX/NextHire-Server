@@ -8,7 +8,7 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// --- ১. Middleware Configuration ---
+// --- 1. Middleware Configuration ---
 app.use(cors({
     origin: ['http://localhost:5173'], 
     credentials: true, 
@@ -17,24 +17,24 @@ app.use(express.json());
 app.use(cookieParser()); 
 
 
-// --- ২. Custom Middlewares (লগ দেখার জন্য) ---
-
+// --- 2. Custom Middlewares 
 const logger = (req, res, next) => {
-    console.log(`--- Request: ${req.method} ${req.url} ---`);
+    console.log('inside the logger middleware');
     next();
 }
 
 const verifyToken = (req, res, next) => {
     const token = req?.cookies?.token;
-
-    console.log('--- Verify Token Middleware ---');
-    console.log('All Cookies found in Backend:', req.cookies); 
+    
+    console.log('Cookie in the middleware', req.cookies); 
     console.log('Extracted Token:', token); 
 
     if (!token) {
         console.log('No token found in cookies! Access Denied.');
         return res.status(401).send({ message: 'Unauthorized access' });
     }
+
+    // Verify JWT Token
 
     jwt.verify(token, process.env.JWT_ACCCESS_SECRET, (err, decoded) => {
         if (err) {
@@ -65,7 +65,7 @@ async function run() {
         const jobsCollection = db.collection("Jobs");
         const applicationCollection = db.collection("applications");
 
-        // --- ৩. JWT Token Issue API ---
+        // --- 3. JWT Token Issue API ---
         app.post('/jwt', async (req, res) => {
             const userData = req.body;
             const token = jwt.sign(userData, process.env.JWT_ACCCESS_SECRET, { expiresIn: '7d' });
@@ -80,7 +80,7 @@ async function run() {
             .send({ success: true });
         });
 
-        // --- ৪. Logout API ---
+        // --- 4. Logout API ---
         app.post('/logout', (req, res) => {
             res.clearCookie('token', { 
                 maxAge: 0,
@@ -92,7 +92,7 @@ async function run() {
         });
 
 
-        // --- ৫. Jobs API ---
+        // --- 5. Jobs API ---
         
        
         app.get("/jobs", logger, verifyToken, async (req, res) => {
@@ -128,7 +128,7 @@ async function run() {
         });
 
 
-        // --- ৬. Application API ---
+        // --- 6. Application API ---
 
         app.get("/applications", logger, verifyToken, async (req, res) => {
             const email = req.query.email;
