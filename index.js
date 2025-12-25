@@ -19,7 +19,15 @@ app.use(cors({
 
 app.use(express.json());
 app.use(cookieParser());
-// --- 2. MongoDB Connection ---
+
+// --- ২. ম্যানুয়াল প্রি-ফ্লাইট হ্যান্ডলার (এটি ৪০১ এরর এবং ক্রাশ ঠেকাবে) ---
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Credentials', true);
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@simple-crud-server.a0arf8b.mongodb.net/?appName=simple-crud-server`;
 const client = new MongoClient(uri, {
@@ -40,7 +48,7 @@ async function dbConnect() {
 }
 dbConnect();
 
-// --- Middlewares ---
+// --- ৩. তোর অরিজিনাল verifyToken (যা আগে ছিল) ---
 const verifyToken = (req, res, next) => {
     const token = req?.cookies?.token;
     if (!token) return res.status(401).send({ message: 'Unauthorized access' });
@@ -104,6 +112,11 @@ app.get("/applications", verifyToken, async (req, res) => {
 app.post("/applications", async (req, res) => {
     const result = await applicationCollection.insertOne(req.body);
     res.send(result);
+});
+
+// এরর হ্যান্ডলিং মিডলওয়্যার
+app.use((err, req, res, next) => {
+    res.status(500).send({ error: err.message });
 });
 
 app.listen(port, () => console.log(`Server on ${port}`));
